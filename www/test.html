@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+
+        .slidecontainer {
+            width: 100%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 25px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+
+
+
+<body>
+    <table>
+        <tr>
+            <th>label</th>
+            <th>adjust</th>
+            <th>now</th>
+        </tr>
+
+        <tbody id="tbody">
+            <tr>
+                <td>DEMO SLIDER</td>
+                <td>
+                    <input type="range" id="memaddr_lbl" min="-10" max="10" value="-10" class="slider" />
+                    <input type="range" id="memaddr_lbl" min="-10" max="10" value="-10" class="slider" />
+                    <input type="range" id="memaddr_lbl" min="-10" max="10" value="-10" class="slider" />
+                </td>
+                <td>
+                    <div>x: 1.0000</div>
+                    <div>y: 12.0000</div>
+                    <div>z: 100.000</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>

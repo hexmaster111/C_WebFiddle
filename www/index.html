@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+
+        .slidecontainer {
+            width: 100%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 25px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <th>label</th>
+            <th>adjust</th>
+            <th>now</th>
+        </tr>
+
+        <tbody id="tbody">
+            <tr>
+                <td>DEMO SLIDER</td>
+                <td>
+                    <input type="range" id="memaddr_lbl" min="-10" max="10" value="-10" class="slider" />
+                </td>
+                <td>0</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+<footer>
+    <script type="text/javascript">
+        const server = "http://localhost:8081";
+        let DO_NOT_UPDATE = false;
+
+        function slider_oninput() { DO_NOT_UPDATE = true; }
+
+
+        function intslider_changed(kind, idx, val) {
+            DO_NOT_UPDATE = false;
+
+            //console.log(kind + ":[" + idx + "] =" + val);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("PATCH", server + "/int", true);
+            xhr.setRequestHeader("Content-Type", "application/text");
+            xhr.send(JSON.stringify(
+                {
+                    k: kind,
+                    i: idx,
+                    v: val
+                }));
+
+            GetVars();
+        }
+
+        function slider_changed_v3(kind, idx, vchanged, newval) {
+            DO_NOT_UPDATE = false;
+            console.log(`${kind}   ${idx}   ${vchanged}   ${newval}`);
+        
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("PATCH", server + "/vec3", true);
+            xhr.setRequestHeader("Content-Type", "application/text");
+            xhr.send(JSON.stringify(
+                {
+                    k: kind,
+                    i: idx,
+                    p: vchanged,
+                    v: newval
+                }));
+
+            
+            GetVars();
+        }
+
+
+
+
+        function UpdateTableWithCurrentVars(text) {
+            var obj = JSON.parse(text);
+
+
+            /** @type {HTMLTableSectionElement} */
+            var bod = document.getElementById("tbody");
+
+
+            if (DO_NOT_UPDATE) { return; }
+
+
+            bod.innerHTML = "";
+
+            // <input type="range" id="memaddr_lbl" min="-10" max="10" class="slider" />
+
+            obj.forEach(elem => {
+                /*
+                [{"k":0,"l":"lbl","s":0.0,"b":1.0,"n":.5}]
+            
+                "k" 0 = vec3, 1 = int
+                "l" label of var
+                "s" min - small
+                "b" max - big
+                "n" now
+                "i" id
+                */
+
+
+                var r = bod.insertRow(-1);
+                var lbl_cell = r.insertCell(0);
+                var slider_cell = r.insertCell(1);
+                var now_cell = r.insertCell(2);
+
+                lbl_cell.innerText = elem.l;
+
+                /* Ints */
+                if (elem.k == 1) {
+                    var o = { k: elem.k, l: elem.l, s: elem.s, b: elem.b, n: elem.n, i: elem.i };
+                    slider_cell.innerHTML = `<input type="range" oninput="slider_oninput()" onchange="slider_changed('${o.k}','${o.i}', this.value)"  min="${o.min}" max="${o.max}" value="${o.n}" class="slider">`
+                    now_cell.innerText = o.n;
+                } else if (elem.k == 0) {
+                    var vo = {
+                        k: elem.k,
+                        l: elem.l,
+
+                        sx: elem.sx,
+                        sy: elem.sy,
+                        sz: elem.sz,
+
+                        bx: elem.bx,
+                        by: elem.by,
+                        bz: elem.bz,
+
+                        nx: elem.nx,
+                        ny: elem.ny,
+                        nz: elem.nz,
+
+                        i: elem.i
+                    };
+
+
+                    var sliderhtml = `
+                    <input type="range" min="${vo.sx}" max="${vo.bx}" value="${vo.nx}" oninput="slider_oninput()" onchange="slider_changed_v3('${vo.k}','${vo.i}','x', this.value)" class="slider" />
+                    <input type="range" min="${vo.sy}" max="${vo.by}" value="${vo.ny}" oninput="slider_oninput()" onchange="slider_changed_v3('${vo.k}','${vo.i}','y', this.value)" class="slider" />
+                    <input type="range" min="${vo.sz}" max="${vo.bz}" value="${vo.nz}" oninput="slider_oninput()" onchange="slider_changed_v3('${vo.k}','${vo.i}','z', this.value)" class="slider" />
+                    `;
+
+                    var nowhtml = `
+                    <div>x: ${vo.nx}</div>
+                    <div>y: ${vo.ny}</div>
+                    <div>z: ${vo.nz}</div>
+                    `;
+
+                    slider_cell.innerHTML = sliderhtml;
+                    now_cell.innerHTML = nowhtml;
+                }
+
+            });
+
+        }
+
+        function HttpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(xmlHttp.responseText);
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+            xmlHttp.send(null);
+        }
+
+
+        function GetVars() {
+            HttpGetAsync(server + "/vars", UpdateTableWithCurrentVars);
+        }
+
+
+
+        var it = setInterval(GetVars, 1500);
+
+
+    </script>
+</footer>
+
+</html>
