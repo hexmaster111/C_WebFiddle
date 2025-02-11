@@ -264,6 +264,30 @@ static struct fiddle_things
 
 } g_fiddlestate;
 
+void DoVec3Patch(int kind, int idx, char changed, float new_v)
+{
+    printf("DO PATCH %d %d %f\n", kind, idx, new_v);
+
+    if (kind != 0)
+        return;
+
+    if (idx > g_fiddlestate.vec3_vars_idx)
+        return;
+
+    if (changed == 'x')
+    {
+        g_fiddlestate.vec3_vars[idx].v->x = new_v;
+    }
+    else if (changed == 'y')
+    {
+        g_fiddlestate.vec3_vars[idx].v->y = new_v;
+    }
+    else if (changed == 'z')
+    {
+        g_fiddlestate.vec3_vars[idx].v->z = new_v;
+    }
+}
+
 void DoIntPatch(int kind, int idx, int val)
 {
     printf("DO PATCH %d %d %d\n", kind, idx, val);
@@ -390,7 +414,7 @@ void GetVars(int fd)
         {
             JsonBuildObject_AddPropertyRaw(buf, "k", "0", 0);
             JsonBuildObject_AddProperty(buf, "l", fv.lbl, 0);
-            
+
             { // small
                 memset(tostrbuf, 0, sizeof(tostrbuf));
                 sprintf(tostrbuf, "%f", fv.min.x);
@@ -446,7 +470,6 @@ void GetVars(int fd)
 
     // printf("\'%s\'\n", buf);
 
-
     WriteBuffer(fd, buf, strlen(buf));
 }
 
@@ -456,6 +479,57 @@ void GetVars(int fd)
 void PatchVec3(int fd, Slice body)
 {
 
+    // {
+    //     k : kind,     // 1
+    //     i : idx,      // idx
+    //     p : vchanged, // x, y, z
+    //     v : newval    // 1.2345
+    // }
+
+    Slice kind, idx, changed, newv;
+
+    ParseJson(body.buf, body.len, "k", &kind.buf, &kind.len);
+    ParseJson(body.buf, body.len, "i", &idx.buf, &idx.len);
+    ParseJson(body.buf, body.len, "p", &changed.buf, &changed.len);
+    ParseJson(body.buf, body.len, "v", &newv.buf, &newv.len);
+
+    printf("PATCH kind:" SLICE_FMT " idx:" SLICE_FMT " prop:" SLICE_FMT " val:" SLICE_FMT "\n",
+           SLICE_PNT(kind),
+           SLICE_PNT(idx),
+           SLICE_PNT(changed),
+           SLICE_PNT(newv));
+
+    if (!kind.buf || !idx.buf || !changed.buf || !newv.buf)
+    {
+        printf("PatchVec3: Invalid json\n");
+        goto DONE;
+    }
+
+    char buffer[1024];
+    memset(buffer, 0, sizeof(buffer));
+
+    int i_kind, i_idx;
+    float v;
+
+    memcpy(buffer, kind.buf, kind.len);
+    i_kind = atoi(buffer);
+    memset(buffer, 0, sizeof(buffer));
+
+    memcpy(buffer, idx.buf, idx.len);
+    i_idx = atoi(buffer);
+    memset(buffer, 0, sizeof(buffer));
+
+    memcpy(buffer, newv.buf, newv.len);
+    v = atof(buffer);
+    memset(buffer, 0, sizeof(buffer));
+
+    DoVec3Patch(i_kind, i_idx, changed.buf[0], v);
+
+DONE:
+
+    char buf[sizeof(HTTP_200_OK)] = {0};
+    memcpy(buf, HTTP_200_OK, sizeof(HTTP_200_OK));
+    WriteBuffer(fd, buf, strlen(buf));
 }
 
 void PatchInt(int fd, Slice body)
@@ -475,7 +549,7 @@ void PatchInt(int fd, Slice body)
 
     if (!kind || !idx || !val)
     {
-        printf("PatchVars: Invalid json\n");
+        printf("PatchInt: Invalid json\n");
         goto DONE;
     }
 

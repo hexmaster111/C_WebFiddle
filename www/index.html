@@ -106,7 +106,7 @@
 
         function slider_changed_v3(kind, idx, vchanged, newval) {
             DO_NOT_UPDATE = false;
-            console.log(`${kind}   ${idx}   ${vchanged}   ${newval}`);
+            // console.log(`${kind}   ${idx}   ${vchanged}   ${newval}`);
         
 
             var xhr = new XMLHttpRequest();
@@ -114,10 +114,10 @@
             xhr.setRequestHeader("Content-Type", "application/text");
             xhr.send(JSON.stringify(
                 {
-                    k: kind,
-                    i: idx,
-                    p: vchanged,
-                    v: newval
+                    k: kind, // 1
+                    i: idx,  // idx
+                    p: vchanged, // x, y, z
+                    v: newval // 1.2345
                 }));
 
             
@@ -165,7 +165,7 @@
                 /* Ints */
                 if (elem.k == 1) {
                     var o = { k: elem.k, l: elem.l, s: elem.s, b: elem.b, n: elem.n, i: elem.i };
-                    slider_cell.innerHTML = `<input type="range" oninput="slider_oninput()" onchange="slider_changed('${o.k}','${o.i}', this.value)"  min="${o.min}" max="${o.max}" value="${o.n}" class="slider">`
+                    slider_cell.innerHTML = `<input type="range" oninput="slider_oninput()" onchange="intslider_changed('${o.k}','${o.i}', this.value)"  min="${o.min}" max="${o.max}" value="${o.n}" class="slider">`
                     now_cell.innerText = o.n;
                 } else if (elem.k == 0) {
                     var vo = {
