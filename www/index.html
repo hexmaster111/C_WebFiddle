@@ -165,7 +165,7 @@
                 /* Ints */
                 if (elem.k == 1) {
                     var o = { k: elem.k, l: elem.l, s: elem.s, b: elem.b, n: elem.n, i: elem.i };
-                    slider_cell.innerHTML = `<input type="range" oninput="slider_oninput()" onchange="intslider_changed('${o.k}','${o.i}', this.value)"  min="${o.min}" max="${o.max}" value="${o.n}" class="slider">`
+                    slider_cell.innerHTML = `<input type="range" oninput="slider_oninput()" onchange="intslider_changed('${o.k}','${o.i}', this.value)"  min="${o.s}" max="${o.b}" value="${o.n}" class="slider">`
                     now_cell.innerText = o.n;
                 } else if (elem.k == 0) {
                     var vo = {
